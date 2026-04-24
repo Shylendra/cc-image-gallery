@@ -98,24 +98,26 @@ export default function AppShell() {
   }, []);
 
   return (
-    <div className="flex h-screen overflow-hidden bg-background">
-      <AppSidebar
-        open={sidebarOpen}
-        onClose={() => setSidebarOpen(false)}
-        selectedImage={sidebarImage}
-        onClearSelection={() => setSidebarImage(null)}
-        onOpenPreview={setPreviewImage}
-        onDeleteImage={handleDeleteImage}
+    <div className="flex h-screen flex-col overflow-hidden bg-background">
+      {/* Header — full width */}
+      <AppHeader
+        onMenuToggle={() => setSidebarOpen((v) => !v)}
+        onUploadClick={scrollToDropzone}
       />
 
-      <div className="flex min-w-0 flex-1 flex-col">
-        <AppHeader
-          onMenuToggle={() => setSidebarOpen((v) => !v)}
-          onUploadClick={scrollToDropzone}
+      {/* Below header: sidebar + content */}
+      <div className="flex min-h-0 flex-1 overflow-hidden">
+        <AppSidebar
+          open={sidebarOpen}
+          onClose={() => setSidebarOpen(false)}
+          selectedImage={sidebarImage}
+          onClearSelection={() => setSidebarImage(null)}
+          onOpenPreview={setPreviewImage}
+          onDeleteImage={handleDeleteImage}
         />
 
-        <main className="flex-1 h-screen overflow-hidden w-full">
-          <div className="w-full h-full px-4 py-4">
+        <main className="flex-1 overflow-hidden">
+          <div className="h-full w-full px-4 py-4">
             <div className="flex h-full gap-6">
               {/* LEFT - Gallery (scrollable) */}
               <div className="flex-1 overflow-y-auto pr-2">
@@ -133,9 +135,9 @@ export default function AppShell() {
                 />
               </div>
 
-              {/* RIGHT - Upload (fixed) */}
+              {/* RIGHT - Upload */}
               <div
-                className="w-80 shrink-0 border rounded-lg p-4 bg-muted h-fit"
+                className="w-80 shrink-0 rounded-lg border bg-muted p-4 h-fit"
                 ref={dropzoneRef}
               >
                 <UploadDropzone onUploadComplete={handleUploadComplete} />
