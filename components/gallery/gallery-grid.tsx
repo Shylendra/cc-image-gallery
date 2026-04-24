@@ -1,8 +1,9 @@
 'use client';
 
-import { Images } from 'lucide-react';
+import { Images, Trash2, X } from 'lucide-react';
 import { ImageData } from '@/lib/types';
 import { formatDate } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
 import ImageCard from './image-card';
 
 interface GalleryGridProps {
@@ -11,6 +12,10 @@ interface GalleryGridProps {
   onSelectImage: (image: ImageData) => void;
   onZoomImage: (image: ImageData) => void;
   onDeleteImage: (image: ImageData) => Promise<void>;
+  selectedUrls: Set<string>;
+  onToggleSelect: (url: string) => void;
+  onBulkDelete: () => void;
+  onClearSelection: () => void;
 }
 
 export default function GalleryGrid({
@@ -19,6 +24,10 @@ export default function GalleryGrid({
   onSelectImage,
   onZoomImage,
   onDeleteImage,
+  selectedUrls,
+  onToggleSelect,
+  onBulkDelete,
+  onClearSelection,
 }: GalleryGridProps) {
   if (isLoading) {
     return (
@@ -45,7 +54,7 @@ export default function GalleryGrid({
         </div>
         <h3 className="text-lg font-semibold text-foreground">No photos yet</h3>
         <p className="mt-1 max-w-sm text-sm text-muted-foreground">
-          Upload your first photo using the dropzone above or the Upload Photos button.
+          Upload your first photo using the dropzone or the Upload Photos button.
         </p>
       </section>
     );
@@ -57,9 +66,39 @@ export default function GalleryGrid({
   }, {});
 
   const sortedDates = Object.keys(grouped).sort((a, b) => b.localeCompare(a));
+  const count = selectedUrls.size;
 
   return (
-    <section className="space-y-8">
+    <section className="space-y-4">
+      {/* Bulk action bar */}
+      {count > 0 && (
+        <div className="sticky top-0 z-10 flex items-center justify-between rounded-xl border border-primary/20 bg-primary px-4 py-2.5 shadow-lg animate-slide-up">
+          <span className="text-sm font-medium text-primary-foreground">
+            {count} {count === 1 ? 'image' : 'images'} selected
+          </span>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onClearSelection}
+              className="h-8 gap-1.5 text-primary-foreground/80 hover:bg-white/20 hover:text-primary-foreground"
+            >
+              <X className="h-3.5 w-3.5" />
+              Clear
+            </Button>
+            <Button
+              size="sm"
+              onClick={onBulkDelete}
+              className="h-8 gap-1.5 bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+              Delete {count} {count === 1 ? 'image' : 'images'}
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Date groups */}
       {sortedDates.map((date) => (
         <div key={date}>
           <div className="mb-3 flex items-center gap-3">
@@ -76,6 +115,8 @@ export default function GalleryGrid({
                 onSelect={onSelectImage}
                 onZoom={onZoomImage}
                 onDelete={onDeleteImage}
+                isSelected={selectedUrls.has(image.url)}
+                onToggleSelect={onToggleSelect}
               />
             ))}
           </div>

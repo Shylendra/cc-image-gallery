@@ -16,6 +16,7 @@ export default function AppShell() {
   const [previewImage, setPreviewImage] = useState<ImageData | null>(null);
   const [sidebarImage, setSidebarImage] = useState<ImageData | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [selectedUrls, setSelectedUrls] = useState<Set<string>>(new Set());
   const dropzoneRef = useRef<HTMLDivElement>(null);
 
   const fetchImages = useCallback(async () => {
@@ -30,22 +31,31 @@ export default function AppShell() {
     }
   }, []);
 
-  useEffect(() => {
-    fetchImages();
-  }, [fetchImages]);
+  useEffect(() => { fetchImages(); }, [fetchImages]);
 
-  const handleUploadComplete = useCallback(() => {
-    fetchImages();
-  }, [fetchImages]);
+  const handleUploadComplete = useCallback(() => { fetchImages(); }, [fetchImages]);
 
   const handleSelectImage = useCallback((image: ImageData) => {
     setSidebarImage(image);
-    setSidebarOpen(true); // open sidebar on mobile so details are visible
+    setSidebarOpen(true);
+  }, []);
+
+  const handleToggleSelect = useCallback((url: string) => {
+    setSelectedUrls((prev) => {
+      const next = new Set(prev);
+      next.has(url) ? next.delete(url) : next.add(url);
+      return next;
+    });
+  }, []);
+
+  const handleClearSelection = useCallback(() => {
+    setSelectedUrls(new Set());
   }, []);
 
   const handleDeleteImage = useCallback(
     async (image: ImageData) => {
       setImages((prev) => prev.filter((img) => img.url !== image.url));
+      setSelectedUrls((prev) => { const next = new Set(prev); next.delete(image.url); return next; });
       if (previewImage?.url === image.url) setPreviewImage(null);
       if (sidebarImage?.url === image.url) setSidebarImage(null);
 
@@ -54,11 +64,26 @@ export default function AppShell() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url: image.url }),
       });
-
       if (!res.ok) fetchImages();
     },
     [previewImage, sidebarImage, fetchImages],
   );
+
+  const handleBulkDelete = useCallback(async () => {
+    const urls = Array.from(selectedUrls);
+    // Optimistic removal
+    setImages((prev) => prev.filter((img) => !selectedUrls.has(img.url)));
+    if (previewImage && selectedUrls.has(previewImage.url)) setPreviewImage(null);
+    if (sidebarImage && selectedUrls.has(sidebarImage.url)) setSidebarImage(null);
+    setSelectedUrls(new Set());
+
+    const res = await fetch("/api/images", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ urls }),
+    });
+    if (!res.ok) fetchImages();
+  }, [selectedUrls, previewImage, sidebarImage, fetchImages]);
 
   const scrollToDropzone = useCallback(() => {
     dropzoneRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -92,6 +117,10 @@ export default function AppShell() {
                   onSelectImage={handleSelectImage}
                   onZoomImage={setPreviewImage}
                   onDeleteImage={handleDeleteImage}
+                  selectedUrls={selectedUrls}
+                  onToggleSelect={handleToggleSelect}
+                  onBulkDelete={handleBulkDelete}
+                  onClearSelection={handleClearSelection}
                 />
               </div>
 
