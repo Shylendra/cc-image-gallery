@@ -52,6 +52,14 @@ export default function AppShell() {
     setSelectedUrls(new Set());
   }, []);
 
+  const handleSelectAll = useCallback(() => {
+    setSelectedUrls((prev) =>
+      prev.size === images.length
+        ? new Set()
+        : new Set(images.map((img) => img.url))
+    );
+  }, [images]);
+
   const handleDeleteImage = useCallback(
     async (image: ImageData) => {
       setImages((prev) => prev.filter((img) => img.url !== image.url));
@@ -119,6 +127,7 @@ export default function AppShell() {
                   onDeleteImage={handleDeleteImage}
                   selectedUrls={selectedUrls}
                   onToggleSelect={handleToggleSelect}
+                  onSelectAll={handleSelectAll}
                   onBulkDelete={handleBulkDelete}
                   onClearSelection={handleClearSelection}
                 />

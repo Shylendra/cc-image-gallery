@@ -14,6 +14,7 @@ interface GalleryGridProps {
   onDeleteImage: (image: ImageData) => Promise<void>;
   selectedUrls: Set<string>;
   onToggleSelect: (url: string) => void;
+  onSelectAll: () => void;
   onBulkDelete: () => void;
   onClearSelection: () => void;
 }
@@ -26,6 +27,7 @@ export default function GalleryGrid({
   onDeleteImage,
   selectedUrls,
   onToggleSelect,
+  onSelectAll,
   onBulkDelete,
   onClearSelection,
 }: GalleryGridProps) {
@@ -60,6 +62,8 @@ export default function GalleryGrid({
     );
   }
 
+  const allSelected = images.length > 0 && selectedUrls.size === images.length;
+
   const grouped = images.reduce<Record<string, ImageData[]>>((acc, img) => {
     (acc[img.uploadedDate] ??= []).push(img);
     return acc;
@@ -70,6 +74,19 @@ export default function GalleryGrid({
 
   return (
     <section className="space-y-4">
+      {/* Gallery toolbar */}
+      <div className="flex items-center justify-between">
+        <span className="text-xs text-muted-foreground">
+          {images.length} {images.length === 1 ? 'photo' : 'photos'}
+        </span>
+        <button
+          onClick={onSelectAll}
+          className="text-xs font-medium text-primary hover:underline"
+        >
+          {allSelected ? 'Deselect all' : 'Select all'}
+        </button>
+      </div>
+
       {/* Bulk action bar */}
       {count > 0 && (
         <div className="sticky top-0 z-10 flex items-center justify-between rounded-xl border border-primary/20 bg-primary px-4 py-2.5 shadow-lg animate-slide-up">
