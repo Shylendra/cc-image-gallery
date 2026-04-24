@@ -1,0 +1,10 @@
+services:
+  image-gallery-app:
+    build: .
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./uploads:/app/uploads
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
