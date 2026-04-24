@@ -24,9 +24,13 @@ yarn-error.log*
 *.swp
 *.swo
 
+# TypeScript build cache
+*.tsbuildinfo
+
 # OS
 .DS_Store
 Thumbs.db
 
-# Uploads (local data — not versioned)
-uploads/
+# Uploads — ignore image content, keep folder structure via .gitkeep
+uploads/*
+!uploads/.gitkeep
